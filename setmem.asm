@@ -1,5 +1,8 @@
 /*
  *
+ * Copyright (c) 2023 Veit Wiessner <veitwiessner+6502@gmail.com>
+ * Published under MIT License (https://opensource.org/license/mit/)
+ *
  * setmem: write specified byte x times to memory, start at given address
  * memory map: $c000-$c042
  *
@@ -11,27 +14,21 @@
  *
  */ 
 
-.const zp_byte=$02
-.const zp_addr_1=$fb
-.const zp_addr_2=$fd
+#import "header.asm"
 
-// BASIC subroutines
-.const CHKCOM = $aefd // test for comma
-.const FRMNUM = $ad8a // get numerical value as floating point (stored in FAC)
-.const ADRFOR = $b7f7 // part of POKE, will take value in FAC and convert to 16 bit INT (stored in $14/$15)
-.const GETBYT = $b79e // gets a one byte value (stored in X register)
+#importonce
 
+.filenamespace setmem
+.segment code "setmem-cli"
 
-
-*=$c000                         // program starts at $C000 (49152)
-
+setmem:
 get_values:
 // get start address
         jsr CHKCOM
         jsr FRMNUM
         jsr ADRFOR
-        lda $14                 // save in zeropage
-        sta zp_addr_1
+        lda $14
+        sta zp_addr_1          // save in zeropage
         lda $15
         sta zp_addr_1+1
 
@@ -48,24 +45,32 @@ get_values:
         jsr CHKCOM
         jsr GETBYT
         txa
-setmem:     
+
+.segment code "setmem-main"
+main:     
+{
         ldx zp_addr_2+1         // put hh of loopcount in x
         beq loopcount_lt_256    // if loopcount is < 256 skip to the loop that handles loopcount % 256
-    loop2:
+    loop:
         ldy #$00
-    loop1:
+    {
+    loop:
         sta (zp_addr_1),Y       // write fill-byte to memory
         dey                     // decrement Y (rolls over to 255 on first run)
-        bne loop1               // if y != 0 jump to loop1
+        bne loop               // if y != 0 jump to loop1
+    }
         inc zp_addr_1+1         // increment hh of memory addresses that get overwritten
         dex                     // decrement hh of loopcount
-        bne loop2               // as long as hh of loopcount is >= 0 jump to loop2
+        bne loop               // as long as hh of loopcount is >= 0 jump to loop2
+}
     loopcount_lt_256:           // loopcount % 256
+{
         ldy zp_addr_2           // put ll of loopcount in y
         beq end                 // if 0 end
-    loop3:                
+    loop:
         dey
         sta (zp_addr_1),Y
-        bne loop3
+        bne loop
+}
     end:
         rts
