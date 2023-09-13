@@ -1,18 +1,20 @@
 KA=java -jar /opt/KickAssembler/KickAss.jar
-KAOUTDIR=./build/
+KAOUTDIR=./../build/
 KAOPTS=-cfgfile ./KickAss.cfg -odir ${KAOUTDIR}
 
-lib: lib.asm
-	${KA} ${KAOPTS} lib.asm
+SRCDIR=./src/
+
+lib:
+	${KA} ${KAOPTS} ${SRCDIR}lib.asm
 
 setmem:
-	${KA} ${KAOPTS} setmem.asm
+	${KA} ${KAOPTS} ${SRCDIR}setmem.asm
 
 bmpswitch:
-	${KA} ${KAOPTS} bmpswitch.asm
+	${KA} ${KAOPTS} ${SRCDIR}bmpswitch.asm
 
 drawpt:
-	${KA} ${KAOPTS} drawpt.asm
+	${KA} ${KAOPTS} ${SRCDIR}drawpt.asm
 
 clean:
 	rm -rf ./build/
